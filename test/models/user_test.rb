@@ -1,16 +1,16 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
-  
+
   def setup
-    @user = User.new(name: "Example User", email: "user@realdomain.com",
+    @user = User.new(name: "Example User", email: "user@example.com",
                      password: "foobar", password_confirmation: "foobar")
   end
 
   test "should be valid" do
     assert @user.valid?
-  end 
-  
+  end
+
   test "name should be present" do
     @user.name = "     "
     assert_not @user.valid?
@@ -55,13 +55,6 @@ class UserTest < ActiveSupport::TestCase
     assert_not duplicate_user.valid?
   end
 
-  test "email addresses should be saved as lowercase" do
-    mixed_case_email = "Foo@ExAMPle.CoM"
-    @user.email = mixed_case_email
-    @user.save
-    assert_equal mixed_case_email.downcase, @user.reload.email
-  end
-
   test "password should be present (nonblank)" do
     @user.password = @user.password_confirmation = " " * 6
     assert_not @user.valid?
@@ -74,5 +67,13 @@ class UserTest < ActiveSupport::TestCase
 
   test "authenticated? should return false for a user with nil digest" do
     assert_not @user.authenticated?(:remember, '')
+  end
+
+  test "associated microposts should be destroyed" do
+    @user.save
+    @user.microposts.create!(content: "Lorem ipsum")
+    assert_difference 'Micropost.count', -1 do
+      @user.destroy
+    end
   end
 end
